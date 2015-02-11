@@ -8,6 +8,7 @@ Now(!) I want to write down what I did.
 ###Custom Field in Remine
 * Create a Custom Field (Text oder [Link](https://github.com/edavis10/redmine_url_custom_field))
  in Redmine.
+
 ###Dynamic Field
 
 First you need to add a dynamic field of type "Ticket" in OTRS.
