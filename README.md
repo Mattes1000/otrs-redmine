@@ -13,7 +13,7 @@ Now(!) I want to write down what I did.
 First you need to add a dynamic field of type "Ticket" in OTRS.
 Name it **RedmineIssue**.
 
-![Add DynamicField fpr RedmineIssue](images/DynamicField.png)
+![Add DynamicField for RedmineIssue](images/DynamicField.png)
 
 Config the URL to Reminde
 
@@ -36,6 +36,18 @@ Add the code of the file [AgentTicketActionCommon.dtl](templates/AgentTicketActi
 Add the code of [AgentTicketZoom.dtl](templates/AgentTicketZoom.dtl) to your AgentTicketZoom.dtl
 
 * Maybe you have to copy the Template like you did with the AgentTicketActionCommon
+
+###Screenshots
+If everything worked :)
+
+![Click on TicketParameter](images/EditTicketParameter.png)
+
+After the Ajax Request the Fields for the Projects an Trackers are filled...
+
+![Project Dropdown and Tracker Dropdowns are filled with the Response of Redmine](images/AddTicketToTicket.png)
+
+
+The "Ticket in Redmine erzeugen" means "Create ticket in redmine" ... After a click the Ajax (Post) Request with the API Key and everything else is send to redmine ...
 
 
 
