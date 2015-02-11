@@ -1,0 +1,98 @@
+
+
+# Custom! Hah: Dynamisches Feld für Redmine
+<!-- dtl:block:DynamicField_RedmineIssue -->
+                    <div class="Row Row_DynamicField_$QData{"Name"}">
+                        $Data{"Label"}
+                        <div class="Field">
+                            $Data{"Field"}
+                        </div>
+                        <div class="Clear"></div>
+                    </div>
+<!-- dtl:block:DynamicField_RedmineIssue -->  
+
+
+
+
+<!--dtl:js_on_document_complete-->
+<script type="text/javascript">//<![CDATA[
+
+	if($('#DynamicField_RedmineIssue').val() == ""){
+		$('.Row_DynamicField_RedmineIssue .Field').append('<select id="RedmineIssue_project" style="font-size: 1em;"></select>');
+		$('.Row_DynamicField_RedmineIssue .Field').append('<select id="RedmineIssue_tracker" style="font-size: 1em;"></select>');
+		$('.Row_DynamicField_RedmineIssue .Field').append("<a id='createIssue' href='#' onclick='createIssue()'>Ticket in Redmine erzeugen</a>");
+		
+		var prohtml="";
+		//RedmineIssue_project
+		$.ajax({
+			type: "GET",
+			crossDomain: true,
+			data: {"limit": 100},
+			url : '$Config{"redmine_url"}projects.json',
+			dataType: "jsonp",
+			success: function(data){
+				$.each(data.projects, function(f,e){
+					if(typeof e.parent=="undefined"){
+						prohtml+="<option value='"+e.id+"'>"+e.name+"</option>";
+						}
+				});
+				
+				$('#RedmineIssue_project').html(prohtml);
+				
+			}
+		});
+		
+		var trackhtml ="";
+		
+		$.ajax({
+			type: "GET",
+			url : '$Config{"redmine_url"}trackers.json',
+			crossDomain: true,
+			dataType: "jsonp",
+			success: function(data){
+				$.each(data.trackers, function(f,e){
+					trackhtml+="<option value='"+e.id+"'>"+e.name+"</option>";
+				});
+				
+				$('#RedmineIssue_tracker').html(trackhtml);
+			}
+		});
+	}
+	
+	
+   
+
+//]]></script>
+
+<!--dtl:js_on_document_complete-->
+<script type="text/javascript">//<![CDATA[
+function createIssue(){
+		
+		
+		$.ajax({
+    type: "POST",
+    url: '$Config{"redmine_url"}issues.json',
+    
+		dataType: "json",
+    data:{
+      "key": "[MYREDMINEAPIKEY]",
+	    "issue":{
+	        "project_id":$('#RedmineIssue_project').val(),
+	        "tracker_id": $('#RedmineIssue_tracker').val(),
+	        "custom_field_values":{
+	        		"2":"http://[OTRSSERVER]/index.pl?Action=AgentTicketZoom;TicketID="+ $("input[name='TicketID']").val()
+	        },
+	        "subject": $("#Title").val()
+          
+      }   
+    },
+    success: function(data){
+    console.log(data);
+    	$('#DynamicField_RedmineIssue').val(data.issue.id);
+    	$('#createIssue').hide();
+    	$('#RedmineIssue_project').hide();
+    	$('#RedmineIssue_tracker').hide();
+    }
+	});
+}
+//]]></script>

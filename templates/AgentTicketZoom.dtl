@@ -1,0 +1,51 @@
+<!-- dtl:block:TicketDynamicField_RedmineIssue -->
+<fieldset id="RedmineIssue" class="TableLike FixedLabelSmall">
+
+                        <label>$Text{"$Data{"Label"}"}:</label>
+                        <p class="Value">
+<!-- dtl:block:TicketDynamicField_RedmineIssue_Plain -->
+                            <span  title="$QData{"Title"}"><a target="_blank" href='$Config{"redmine_url"}issues/$Data{"Value"}'>$Data{"Value"}</a></span>
+
+
+
+                            <script type="text/javascript">//<![CDATA[
+                            	var issueid = $Data{"Value"};
+								//console.log(issueid);
+                            //]]></script>
+<!-- dtl:block:TicketDynamicField_RedmineIssue_Plain -->
+                        </p>
+                        <div class="Clear"></div>
+                        
+<!--dtl:js_on_document_complete-->
+<script type="text/javascript">//<![CDATA[
+	
+	
+	$.ajax({
+    type: "GET",
+    crossDomain: true,
+    dataType: "jsonp",
+    url: "$Config{"redmine_url"}issues/"+issueid+".json",
+    
+    success: function(data){
+    	console.log(data.issue);
+    	var values = "";
+    	values += "<label>Status: </label>";
+    	values += "<p class='Value'>"+data.issue.status.name+"</p>";
+    	
+    	values +="<div class='Clear'></div>";
+    	values += "<label>Zugewiesen: </label>";
+    	if(typeof data.issue.assigned_to != "undefined"){
+    		values += "<p class='Value'>"+data.issue.assigned_to.name+"</p>";
+    		}else{
+    		values += "<p class='Value'>-</p>";
+    	}
+    	values +="<div class='Clear'></div>";
+
+    	$('#RedmineIssue').append(values);
+	}
+});
+	
+//]]></script>
+<!--dtl:js_on_document_complete-->                        
+   	</fieldset>                     
+<!-- dtl:block:TicketDynamicField_RedmineIssue -->
