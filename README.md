@@ -14,9 +14,11 @@ Comment on the [Redmine forum](http://www.redmine.org/boards/2/topics/24573?r=28
 * Create two Customs Fields in Redmine: 
 
 OTRS TicketNumber -- Type Text (RegExp --> ^20\d*$) 
+
 ![Add OTRS TicketNumber custom fileds in Redmine](images/OTRS-TicketNumber.png)
 
 OTRS TicketLink -- Type Link 
+
 ![Add OTRS TicketLink custom fileds in Redmine](images/OTRS-TicketLink.png)
 
 
