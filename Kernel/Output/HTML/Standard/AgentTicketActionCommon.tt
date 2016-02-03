@@ -1,0 +1,200 @@
+##################################################################################
+# Integration OTRS <--> Redmine
+##################################################################################
+[% WRAPPER JSOnDocumentComplete %]
+<script type="text/javascript">//<![CDATA[
+
+	var keyRedmine = "[MYREDMINEAPIKEY]";
+
+	if($('#DynamicField_RedmineIssue').val() == ""){
+		$('#DynamicField_RedmineIssue').attr("readonly", false);
+		$('.Row_DynamicField_RedmineIssue .Field').append('<select id="RedmineIssue_project" style="font-size: 1em;"></select>');
+		$('.Row_DynamicField_RedmineIssue .Field').append('<select id="RedmineIssue_tracker" style="font-size: 1em;"></select>');
+		$('.Row_DynamicField_RedmineIssue .Field').append('<select id="RedmineIssue_priorities" style="font-size: 1em;"></select>');
+		$('.Row_DynamicField_RedmineIssue .Field').append("<a id='createIssue' href='#' onclick='createIssue()'><p>Add Redmine task</p></a>");
+		$('.Row_DynamicField_RedmineIssue .Field').append("<a id='TextIssueOK'>  <strong> <font color='green'>TASK CREATED IN REDMINE</font></strong> <p>Press Submit to associate Redmine task to OTRS ticket</p></a>"); 
+		$('.Row_DynamicField_RedmineIssue .Field').append("<a id='TextIssueERROR'>  <font color='red'><strong>ERROR CREATING TSK REDMINE</strong><p>Contact with OTRS administrator</p></font></a>"); 
+		$('#TextIssueOK').hide();
+		$('#TextIssueERROR').hide();
+		
+		var prohtml="";
+		//RedmineIssue_project
+		$.ajax({
+			type: "GET",
+			url : '[% Config("redmine_url") %]projects.json',
+			dataType: "jsonp",
+			//data: {"limit": 100},
+			data:{
+				"limit": 100,
+				"key": keyRedmine,
+			},
+			success: function(data){
+				$.each(data.projects, function(f,e){
+				// Only parents projects
+				//	if(typeof e.parent=="undefined"){
+						prohtml+="<option value='"+e.id+"'>"+e.name+"</option>";
+					//}
+				});
+				$('#RedmineIssue_project').html(prohtml);
+			}
+		});
+		
+		var trackhtml ="";
+		//RedmineIssue_tracker
+		$.ajax({
+			type: "GET",
+			url : '[% Config("redmine_url") %]trackers.json',
+			dataType: "jsonp",
+			data:{
+				"key": keyRedmine,
+			},
+			success: function(data){
+				$.each(data.trackers, function(f,e){
+					trackhtml+="<option value='"+e.id+"'>"+e.name+"</option>";
+				});
+				$('#RedmineIssue_tracker').html(trackhtml);
+			}
+		});
+
+		var priohtml ="";
+		//RedmineIssue_priorities
+		$.ajax({
+			type: "GET",
+			url : '[% Config("redmine_url") %]enumerations/issue_priorities.json',
+			dataType: "jsonp",
+			data:{
+				"key": keyRedmine,
+			},
+			success: function(data){
+				$.each(data.issue_priorities, function(f,e){
+					priohtml+="<option value='"+e.id+"'>"+e.name+"</option>";
+				});
+				$('#RedmineIssue_priorities').html(priohtml);
+			}
+		});
+	}
+	else {
+		$('#DynamicField_RedmineIssue').attr("readonly", true);
+		$('.Row_DynamicField_RedmineIssue .Field').append('<select id="RedmineIssue_priorities" style="font-size: 1em;"></select>');
+		$('.Row_DynamicField_RedmineIssue .Field').append('<select id="RedmineIssue_statuses" style="font-size: 1em;"></select>');
+                $('.Row_DynamicField_RedmineIssue .Field').append("<a id='updateIssue' href='#' onclick='updateIssue()' > <p>Update Task Redmine</p></a>");
+		$('.Row_DynamicField_RedmineIssue .Field').append("<a id='TextIssueOK'>  <strong> <font color='green'>TASK REDMINE UPDATED</font></strong></a>"); 
+		$('.Row_DynamicField_RedmineIssue .Field').append("<a id='TextIssueERROR'>  <font color='red'><strong>ERROR UPDATING  TASK REDMINE</strong><p>Contact with OTRS administrator</p></font></a>"); 
+		$('#TextIssueOK').hide();
+		$('#TextIssueERROR').hide();
+
+
+		var priohtml ="";
+		//RedmineIssue_priorities
+		$.ajax({
+			type: "GET",
+			url : '[% Config("redmine_url") %]enumerations/issue_priorities.json',
+			dataType: "jsonp",
+			data:{
+				"key": keyRedmine,
+			},
+			success: function(data){
+				$.each(data.issue_priorities, function(f,e){
+					priohtml+="<option value='"+e.id+"'>"+e.name+"</option>";
+				});
+				$('#RedmineIssue_priorities').html(priohtml);
+			}
+		});
+
+		var stathtml ="";
+		//RedmineIssue_statuses
+		$.ajax({
+			type: "GET",
+			url : '[% Config("redmine_url") %]issue_statuses.json',
+			dataType: "jsonp",
+			data:{
+				"key": keyRedmine,
+			},
+			success: function(data){
+				$.each(data.issue_statuses, function(f,e){
+					stathtml+="<option value='"+e.id+"'>"+e.name+"</option>";
+				});
+				$('#RedmineIssue_statuses').html(stathtml);
+			}
+		});
+	}
+//]]></script>
+[% END %]
+
+
+<script type="text/javascript">//<![CDATA[
+	function createIssue(){
+		var keyRedmine = "[MYREDMINEAPIKEY]";
+		$.ajax({
+			type: "POST",
+			url: '[% Config("redmine_url") %]issues.json',
+			dataType: "json",
+			data:{
+				"key": keyRedmine,
+				"issue":{
+					"project_id":$('#RedmineIssue_project').val(),
+					"tracker_id": $('#RedmineIssue_tracker').val(),
+					"priority_id": $('#RedmineIssue_priorities').val(),
+					"custom_field_values":{
+						"[OTRSTicketNumber]":[% Data.TicketNumber %],
+						"[OTRSTicketLink]":"http://[OTRSSERVER]/otrs/index.pl?Action=AgentTicketZoom;TicketID="+ $("input[name='TicketID']").val()
+					},
+					"subject": "[Ticket#"+ [% Data.TicketNumber %]+ "] "+ $("#Title").val(),
+				}
+			},
+			success: function(data){
+				console.log(data);
+				$('#DynamicField_RedmineIssue').val(data.issue.id);
+				$('#DynamicField_RedmineIssue').attr("readonly", true);
+				$('#createIssue').hide();
+				$('#RedmineIssue_project').hide();
+				$('#RedmineIssue_tracker').hide();
+				$('#RedmineIssue_priorities').hide();
+				$('#TextIssueOK').show();
+			},
+			error: function(data){
+				$('#createIssue').hide();
+				$('#RedmineIssue_project').hide();
+				$('#RedmineIssue_tracker').hide();
+				$('#RedmineIssue_priorities').hide();
+				$('#TextIssueERROR').show();
+				alert( "ERROR: " + data );
+			}
+		});
+	}
+//]]></script>
+
+
+
+<script type="text/javascript">//<![CDATA[
+	function updateIssue(){
+		var keyRedmine = "[MYREDMINEAPIKEY]";
+		$.ajax({
+			type: "PUT",
+			url: '[% Config("redmine_url") %]issues/'+$('#DynamicField_RedmineIssue').val() +'.json',
+			dataType: "html",
+    			data:{
+				"key": keyRedmine,
+				"issue":{
+					"priority_id": $('#RedmineIssue_priorities').val(),
+					"status_id": $('#RedmineIssue_statuses').val()
+				}
+			},
+			success: function(data){
+				console.log(data);
+				$('#updateIssue').hide();
+				$('#RedmineIssue_priorities').hide();
+				$('#RedmineIssue_statuses').hide();
+				$('#TextIssueOK').show();
+			},
+			error: function(data){
+				console.log(data);
+				$('#updateIssue').hide();
+				$('#RedmineIssue_priorities').hide();
+				$('#RedmineIssue_statuses').hide();
+				$('#TextIssueERROR').show();
+				alert( "ERROR: " + data );
+			}
+		});
+	}
+//]]></script>
